@@ -42,15 +42,6 @@ namespace HistSiCustomEditor
         }
     }
 
-    [CustomEditor(typeof(SingleMathOperation_Float))]
-    public class SingleMathOperationEditor_Float:Editor
-    {
-        public override void OnInspectorGUI()
-        {
-            DefaultMethods.SingleMathOperationOnInspectorGUI<float>(this);
-        }
-    }
-
     [CustomEditor(typeof(Converter_FloatToInt32))]
     public class ConverterEditor_FloatToInt32:Editor
     {

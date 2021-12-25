@@ -1,22 +1,22 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 namespace HistSiValueSources
 {
-    public class PairMathOperation_Float : PairMathOperation<float>
+    public class PairMathOperation_Int32 : PairMathOperation<int>
     {
-        private readonly Func<float, float, float>[] mathOperations = new Func<float, float, float>[9]
+        private readonly Func<int, int, int>[] mathOperations = new Func<int, int, int>[9]
         {
             ( x, y)=>x+y,
             (x, y)=>x-y,
             (x,y)=>x*y,
             (x,y)=>x/y,
             (x,y)=>x%y,
-            (x,y)=>(float)Math.Pow(x,y),
-            (x,y)=>(float)Math.Pow(x,1/y),
-            delegate(float x,float y)
+            (x,y)=>(int)Math.Pow(x,y),
+            (x,y)=>(int)Math.Pow(x,1/y),
+            delegate(int x,int y)
             {
                 if (x % y == 0)
                 {
@@ -27,7 +27,7 @@ namespace HistSiValueSources
                     return x+1-x%y;
                 }
             },
-            delegate(float x,float y)
+            delegate(int x,int y)
             {
                 if (x % y == 0)
                 {
@@ -39,6 +39,6 @@ namespace HistSiValueSources
                 }
             }
         };
-        protected override Func<float, float, float>[] MathOperations { get => mathOperations;}
+        protected override Func<int, int, int>[] MathOperations { get => mathOperations; }
     }
 }

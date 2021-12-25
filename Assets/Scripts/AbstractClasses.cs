@@ -53,7 +53,9 @@ namespace HistSiValueSources
             Divide,
             Remainder,
             Pow,
-            Root
+            Root,
+            RoundUpTo,
+            RoundDownTo
         }
         public MathOperationType OperationType;
 
