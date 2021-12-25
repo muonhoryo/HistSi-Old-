@@ -30,15 +30,7 @@ namespace HistSiValueSources
         }
         protected virtual void Awake()
         {
-            if (valueGetter == null)
-            {
-                valueGetter = (IGetterValue<T>)ValueSourceBehavior;
-                if (valueGetter == null)
-                {
-                    HistSi.HistSi.ThrowError("Value Source Monobehavior does not inhert IGetterValue<" + typeof(T) + ">");
-                    return;
-                }
-            }
+            DefaultMethods.InterfaceInitialization(ref valueGetter, ref ValueSourceBehavior);
         }
         protected virtual void Start()
         {
@@ -125,23 +117,13 @@ namespace HistSiValueSources
         }
         protected virtual void Awake()
         {
-            if (FirstOperandIsFunction&& FirstSourceOperand == null)
+            if (FirstOperandIsFunction)
             {
-                FirstSourceOperand = (IGetterValue<T>)FirstOperandSourseBehavior;
-                if (FirstSourceOperand == null)
-                {
-                    HistSi.HistSi.ThrowError("Value Source Monobehavior does not inhert IGetterValue<" + typeof(T) + ">");
-                    return;
-                }
+                DefaultMethods.InterfaceInitialization(ref FirstSourceOperand, ref FirstOperandSourseBehavior);
             }
-            if (SecondOperandIsFunction && SecondSourceOperand == null)
+            if (SecondOperandIsFunction)
             {
-                SecondSourceOperand = (IGetterValue<T>)SecondOperandSourseBehavior;
-                if (SecondSourceOperand == null)
-                {
-                    HistSi.HistSi.ThrowError("Value Source Monobehavior does not inhert IGetterValue<" + typeof(T) + ">");
-                    return;
-                }
+                DefaultMethods.InterfaceInitialization(ref SecondSourceOperand, ref SecondOperandSourseBehavior);
             }
         }
     }
@@ -194,15 +176,25 @@ namespace HistSiValueSources
         }
         protected virtual void Awake()
         {
-            if (OperandIsFunction && SourceOperand == null)
+            if (OperandIsFunction)
             {
-                SourceOperand = (IGetterValue<T>)OperandSourseBehavior;
-                if (SourceOperand == null)
-                {
-                    HistSi.HistSi.ThrowError("Value Source Monobehavior does not inhert IGetterValue<" + typeof(T) + ">");
-                    return;
-                }
+                DefaultMethods.InterfaceInitialization(ref SourceOperand, ref OperandSourseBehavior);
             }
+        }
+    }
+    public abstract class Converter<TInput, TOutput> : MonoBehaviour, IGetterValue<TOutput>
+    {
+        public MonoBehaviour ValueSourceBehavior;
+        public IGetterValue<TInput> ValueSource;
+        public abstract TOutput Value { get; }
+        public event Action OnValueChanged
+        {
+            add { ValueSource.OnValueChanged += value; }
+            remove { ValueSource.OnValueChanged -= value; }
+        }
+        protected virtual void Awake()
+        {
+            DefaultMethods.InterfaceInitialization(ref ValueSource,ref ValueSourceBehavior);
         }
     }
 }

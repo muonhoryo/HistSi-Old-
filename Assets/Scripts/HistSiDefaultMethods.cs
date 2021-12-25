@@ -131,5 +131,41 @@ namespace HistSiCustomEditor
             }
             serializedObject.ApplyModifiedProperties();
         }
+        public static void ConverterOnInspectorGUI<TInput,TOutput>(Editor editor)
+        {
+            HistSiValueSources.Converter<TInput, TOutput> obj = (HistSiValueSources.Converter<TInput, TOutput>)editor.target;
+            SerializeInterface(ref obj.ValueSource, ref obj.ValueSourceBehavior, "Value Source " + typeof(TInput));
+        }
+    }
+}
+namespace HistSiValueSources
+{
+    public static class DefaultMethods
+    {
+        public delegate bool TryParser<T>(string x, out T y);
+        public static T Converter_StringToTGetValue<T>(string value,TryParser<T> parser) where T:struct
+        {
+            if (parser(value, out T x))
+            {
+                return x;
+            }
+            else
+            {
+                HistSi.HistSi.ThrowError("Cannot convert " + value + " to " + typeof(T));
+                return default;
+            }
+        }
+        public static void InterfaceInitialization<T>(ref IGetterValue<T> serializatedInterface,ref MonoBehaviour interfaceComponent)
+        {
+            if (serializatedInterface == null)
+            {
+                serializatedInterface = (IGetterValue<T>)interfaceComponent;
+                if (serializatedInterface == null)
+                {
+                    HistSi.HistSi.ThrowError("Value Source Monobehavior does not inhert IGetterValue<" + typeof(T) + ">");
+                    return;
+                }
+            }
+        }
     }
 }
