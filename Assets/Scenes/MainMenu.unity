@@ -228,6 +228,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 92c6ee0ab8862404a9fc1aa94475107a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  CustomValues: {fileID: 0}
   UICanvas: {fileID: 909275901}
 --- !u!20 &519420031
 Camera:

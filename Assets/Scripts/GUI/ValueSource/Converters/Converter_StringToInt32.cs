@@ -10,7 +10,7 @@ namespace HistSiValueSources
         {
             get
             {
-                return DefaultMethods.Converter_StringToTGetValue(ValueSource.Value, delegate (string x, out int y)
+                return Converter.StringToValue(ValueSource.Value, delegate (string x, out int y)
                 {
                     return int.TryParse(x, out y);
                 });

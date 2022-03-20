@@ -4,17 +4,19 @@ using UnityEngine;
 
 namespace HistSiGUI
 {
-    public class HistSiMessage : MonoBehaviour, IRemovable
+    public class HistSiSubMenu : MonoBehaviour,IRemovable
     {
-        [SerializeReference]
-        HistSiButton[] ChildrenButtons;
+        [SerializeField]
+        protected HistSiButton[] ChildrenButtons;
+        [SerializeField]
+        protected byte MenuLayer;
         [SerializeField]
         protected Animation onDestroyAnimation;
         public Animation OnDestroyAnimation => onDestroyAnimation;
         public GameObject DestroyedObject => gameObject;
         public void Remove()
         {
-            HistSiInterfaces.DefaultMethods.IRemovableRemove(this, delegate ()
+            HistSiInterfaces.Removable.Remove(this, delegate
             {
                 foreach (HistSiButton button in ChildrenButtons)
                 {
@@ -24,6 +26,7 @@ namespace HistSiGUI
         }
         protected virtual void Awake()
         {
+            SubMenuManager.AddSubMenu(MenuLayer, this);
             ChildrenButtons = GetComponentsInChildren<HistSiButton>();
         }
         Coroutine IRemovable.StartCoroutine(IEnumerator routine)

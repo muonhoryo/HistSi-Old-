@@ -7,6 +7,9 @@ using System;
 
 namespace HistSiGUI
 {
+    /// <summary>
+    /// Base of command component. Allows customize work behavior of ICommandRuner in inspector without coding.
+    /// </summary>
     public abstract class ButtonCommand : MonoBehaviour
     {
         public abstract void CommandRun();
@@ -14,37 +17,57 @@ namespace HistSiGUI
 }
 namespace HistSiValueSources
 {
-    public abstract class ValueSource<T> : MonoBehaviour
+    /// <summary>
+    /// Base of source of value component. Allows customize,where to get the value to any action.
+    /// </summary>
+    /// <typeparam name="TValueType"></typeparam>
+    public abstract class ValueSource<TValueType> : MonoBehaviour
     {
-        public abstract T Value { get; set; }
+        public abstract TValueType Value { get; set; }
     }
-    public abstract class TextDependence<T> : MonoBehaviour, IValueListener<T>
+    /// <summary>
+    /// Base of text field with dependence of any value. When the value changed,text is updated with that value.
+    /// In inspector assigned text field and ValueSource.
+    /// </summary>
+    /// <typeparam name="TValueType"></typeparam>
+    public abstract class TextDependence<TValueType> : MonoBehaviour, IValueListener<TValueType>
     {
-        public MonoBehaviour ValueSourceBehavior;
+        /// <summary>
+        /// Field to interface serialization.
+        /// </summary>
+        public MonoBehaviour GetterValueComponent;
         public Text ValueText;
-        public IGetterValue<T> valueGetter;
-        public IGetterValue<T> ValueSource => valueGetter;
-        public void OnValueChangedAction()
+        public IGetterValue<TValueType> valueGetter;
+        public IGetterValue<TValueType> ValueSource => valueGetter;
+        public void OnValueChanged()
         {
             ValueText.text = valueGetter.Value.ToString();
         }
         protected virtual void Awake()
         {
-            DefaultMethods.InterfaceInitialization(ref valueGetter, ref ValueSourceBehavior);
+            DefaultMethods.InterfaceInitialization(ref valueGetter, ref GetterValueComponent);
         }
         protected virtual void Start()
         {
-            valueGetter.OnValueChanged += OnValueChangedAction;
-            OnValueChangedAction();
+            valueGetter.ValueChangeEvent += OnValueChanged;
+            OnValueChanged();
         }
         protected virtual void OnDestroy()
         {
-            valueGetter.OnValueChanged -= OnValueChangedAction;
+            valueGetter.ValueChangeEvent -= OnValueChanged;
         }
     }
-    public abstract class PairMathOperation<T> : MonoBehaviour,IGetterValue<T> where T:struct
+    /// <summary>
+    /// Base of maths operations with two operand. Avaible operations are indicated in MathOperationType enum.
+    /// In inspector assigned operands and type of operation. Operands can be IGetterValue(type of TValueType) or TValueType. 
+    /// </summary>
+    /// <typeparam name="TValueType"></typeparam>
+    public abstract class PairMathOperation<TValueType> : MonoBehaviour,IGetterValue<TValueType> where TValueType:struct
     {
-        protected abstract Func<T, T, T>[] MathOperations { get; }
+        /// <summary>
+        /// Array of delegates of type "TValueType Func(TValueType first,TValueType second)".
+        /// </summary>
+        protected abstract Func<TValueType, TValueType, TValueType>[] MathOperations { get; }
         public enum MathOperationType
         {
             Add,
@@ -58,21 +81,21 @@ namespace HistSiValueSources
             RoundDownTo
         }
         public MathOperationType OperationType;
-
-        public MonoBehaviour FirstOperandSourseBehavior;
-        public T FirstOperand;
-        public IGetterValue<T> FirstSourceOperand;
+        //First operand
+        public MonoBehaviour FirstGetterValueComponent;
+        public TValueType FirstOperand;
+        public IGetterValue<TValueType> FirstSourceOperand;
         public bool FirstOperandIsFunction;
-
-        public MonoBehaviour SecondOperandSourseBehavior;
-        public T SecondOperand;
-        public IGetterValue<T> SecondSourceOperand;
+        //Second operand
+        public MonoBehaviour SecondGetterValueComponent;
+        public TValueType SecondOperand;
+        public IGetterValue<TValueType> SecondSourceOperand;
         public bool SecondOperandIsFunction;
-        public T Value 
+        public TValueType Value 
         {
             get 
             {
-                T x, y;
+                TValueType x, y;
                 if (FirstOperandIsFunction)
                 {
                     x = FirstSourceOperand.Value;
@@ -92,28 +115,28 @@ namespace HistSiValueSources
                 return MathOperations[(int)OperationType](x, y);
             }
         }
-        public event Action OnValueChanged
+        public event Action ValueChangeEvent
         {
             add
             {
                 if(FirstOperandIsFunction && FirstSourceOperand != null)
                 {
-                    FirstSourceOperand.OnValueChanged += value;
+                    FirstSourceOperand.ValueChangeEvent += value;
                 }
                 if (SecondOperandIsFunction && SecondSourceOperand != null)
                 {
-                    SecondSourceOperand.OnValueChanged += value;
+                    SecondSourceOperand.ValueChangeEvent += value;
                 }
             }
             remove
             {
                 if (FirstOperandIsFunction && FirstSourceOperand != null)
                 {
-                    FirstSourceOperand.OnValueChanged -= value;
+                    FirstSourceOperand.ValueChangeEvent -= value;
                 }
                 if (SecondOperandIsFunction && SecondSourceOperand != null)
                 {
-                    SecondSourceOperand.OnValueChanged -= value;
+                    SecondSourceOperand.ValueChangeEvent -= value;
                 }
             }
         }
@@ -121,16 +144,24 @@ namespace HistSiValueSources
         {
             if (FirstOperandIsFunction)
             {
-                DefaultMethods.InterfaceInitialization(ref FirstSourceOperand, ref FirstOperandSourseBehavior);
+                DefaultMethods.InterfaceInitialization(ref FirstSourceOperand, ref FirstGetterValueComponent);
             }
             if (SecondOperandIsFunction)
             {
-                DefaultMethods.InterfaceInitialization(ref SecondSourceOperand, ref SecondOperandSourseBehavior);
+                DefaultMethods.InterfaceInitialization(ref SecondSourceOperand, ref SecondGetterValueComponent);
             }
         }
     }
+    /// <summary>
+    /// Base of maths operations with one operand. Avaible operations are indicated in MathOperationType enum.
+    /// In inspector assigned operand and type of operation. Operand can be IGetterValue(type of TValueType) or TValueType.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public abstract class SingleMathOperation<T>:MonoBehaviour,IGetterValue<T> where T : struct
     {
+        /// <summary>
+        /// Array of delegates of type "TValueType Func(TValueType value)".
+        /// </summary>
         protected abstract Func<T, T>[] MathOperations { get; }
         public enum MathOperationType
         {
@@ -139,7 +170,7 @@ namespace HistSiValueSources
         }
         public MathOperationType OperationType;
 
-        public MonoBehaviour OperandSourseBehavior;
+        public MonoBehaviour OperandSourseComponent;
         public T Operand;
         public IGetterValue<T> SourceOperand;
         public bool OperandIsFunction;
@@ -159,20 +190,20 @@ namespace HistSiValueSources
                 return MathOperations[(int)OperationType](x);
             }
         }
-        public event Action OnValueChanged
+        public event Action ValueChangeEvent
         {
             add
             {
                 if (OperandIsFunction && SourceOperand != null)
                 {
-                    SourceOperand.OnValueChanged += value;
+                    SourceOperand.ValueChangeEvent += value;
                 }
             }
             remove
             {
                 if (OperandIsFunction && SourceOperand != null)
                 {
-                    SourceOperand.OnValueChanged -= value;
+                    SourceOperand.ValueChangeEvent -= value;
                 }
             }
         }
@@ -180,23 +211,29 @@ namespace HistSiValueSources
         {
             if (OperandIsFunction)
             {
-                DefaultMethods.InterfaceInitialization(ref SourceOperand, ref OperandSourseBehavior);
+                DefaultMethods.InterfaceInitialization(ref SourceOperand, ref OperandSourseComponent);
             }
         }
     }
+    /// <summary>
+    /// Base of converter component. Allows get value from ValueSource in type of TOutput.
+    /// In inspector assigned ValueSource.
+    /// </summary>
+    /// <typeparam name="TInput"></typeparam>
+    /// <typeparam name="TOutput"></typeparam>
     public abstract class Converter<TInput, TOutput> : MonoBehaviour, IGetterValue<TOutput>
     {
-        public MonoBehaviour ValueSourceBehavior;
+        public MonoBehaviour ValueSourceComponent;
         public IGetterValue<TInput> ValueSource;
         public abstract TOutput Value { get; }
-        public event Action OnValueChanged
+        public event Action ValueChangeEvent
         {
-            add { ValueSource.OnValueChanged += value; }
-            remove { ValueSource.OnValueChanged -= value; }
+            add { ValueSource.ValueChangeEvent += value; }
+            remove { ValueSource.ValueChangeEvent -= value; }
         }
         protected virtual void Awake()
         {
-            DefaultMethods.InterfaceInitialization(ref ValueSource,ref ValueSourceBehavior);
+            DefaultMethods.InterfaceInitialization(ref ValueSource,ref ValueSourceComponent);
         }
     }
 }

@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using HistSiInterfaces;
 
 namespace HistSiGUI
 {
@@ -17,7 +18,7 @@ namespace HistSiGUI
         public GameObject DestroyedObject => gameObject;
         public void Remove()
         {
-            HistSiInterfaces.DefaultMethods.IRemovableRemove(this,delegate { interactable = false; });
+            Removable.Remove(this,delegate { interactable = false; });
         }
         public virtual void RunCommand(ButtonCommand command)
         {
@@ -25,7 +26,7 @@ namespace HistSiGUI
         }
         public virtual void RunCommandList(ButtonCommandsQueue CommandList)
         {
-            HistSiInterfaces.DefaultMethods.ICommandRunerRunCommandList(CommandList);
+            CommandList.RunCommandQueue();
         }
         Coroutine IRemovable.StartCoroutine(IEnumerator routine)
         {

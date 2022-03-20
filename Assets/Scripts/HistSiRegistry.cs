@@ -1,9 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using HistSi;
 using HistSiGUI;
-using System;
+using HistSiValueSources;
 
 namespace HistSi
 {
@@ -62,7 +61,10 @@ namespace HistSi
     }
     public static class HistSi
     {
+        public delegate bool TryParser<T>(string x, out T y);
+        public static HistSiCustomValues CustomValues;
         public static GameObject UICanvas;
+        public const string SerializationDirectory = "Assets/Scripts/SerializationData";
         static float musicLevel;
         public static float MusicLevel 
         { 
@@ -113,12 +115,12 @@ namespace HistSiGUI
 {
     public static class ButtonLocker
     {
-        readonly static List<byte> LockLayers = new List<byte> { };
-        readonly static Dictionary<byte, byte> LockerCount = new Dictionary<byte, byte> { };
-        readonly static Dictionary<byte, List<LockableButton>> Buttons = new Dictionary<byte, List<LockableButton>> { };
-        public static bool IsExistLayer(byte lockLayer)
+        private readonly static List<byte> LockLayers = new List<byte> { };
+        private readonly static Dictionary<byte, byte> LockersCount = new Dictionary<byte, byte> { };
+        private readonly static Dictionary<byte, List<LockableButton>> Buttons = new Dictionary<byte, List<LockableButton>> { };
+        public static bool IsExistLayer(byte layer)
         {
-            return Buttons.ContainsKey(lockLayer);
+            return Buttons.ContainsKey(layer);
         }
         public static List<byte> GetLockLayers()
         {
@@ -126,21 +128,21 @@ namespace HistSiGUI
             list.AddRange(LockLayers);
             return list;
         }
-        public static byte GetLockerCount(byte lockedLayer)
+        public static byte GetLockerCount(byte layer)
         {
-            return LockerCount[lockedLayer];
+            return LockersCount[layer];
         }
-        public static List<LockableButton> GetButtons(byte lockedLayer)
+        public static List<LockableButton> GetButtons(byte layer)
         {
             List<LockableButton> buttons = new List<LockableButton> { };
-            buttons.AddRange(Buttons[lockedLayer]);
+            buttons.AddRange(Buttons[layer]);
             return buttons;
         }
         public static void AddButton(LockableButton button)
         {
             void CreateNewLayer(byte lockLayer)
             {
-                LockerCount.Add(lockLayer, 0);
+                LockersCount.Add(lockLayer, 0);
                 Buttons.Add(lockLayer, new List<LockableButton> { });
                 LockLayers.Add(lockLayer);
             }
@@ -157,56 +159,55 @@ namespace HistSiGUI
                 Buttons[button.LockLayer].Remove(button);
             }
         }
-        public static void IncrementLockerCount(byte lockedLayer)
+        public static void IncrementLockerCount(byte layer)
         {
-            if (LockerCount[lockedLayer] == byte.MaxValue)
+            if (LockersCount[layer] == byte.MaxValue)
             {
-                HistSi.HistSi.ThrowError("To many lockers on layer:" + lockedLayer);
+                HistSi.HistSi.ThrowError("To many lockers on layer:" + layer);
             }
             else
             {
-                LockerCount[lockedLayer]++;
+                LockersCount[layer]++;
             }
         }
-        public static void DecrementLockerCount(byte lockedLayer)
+        public static void DecrementLockerCount(byte layer)
         {
-            if (LockerCount[lockedLayer] == 0)
+            if (LockersCount[layer] == 0)
             {
                 HistSi.HistSi.ThrowError("Main menu buttons was not locked");
             }
             else
             {
-                LockerCount[lockedLayer]--;
+                LockersCount[layer]--;
             }
         }
-        public static void LockButtons(byte lockedLayer)
+        public static void LockButtons(byte layer)
         {
-            if (IsExistLayer(lockedLayer))
+            if (IsExistLayer(layer))
             {
-                if (GetLockerCount(lockedLayer) == 0)
+                if (GetLockerCount(layer) == 0)
                 {
-                    foreach (LockableButton button in GetButtons(lockedLayer)) button.DeactivateButton();
+                    foreach (LockableButton button in GetButtons(layer)) button.DeactivateButton();
                 }
-                IncrementLockerCount(lockedLayer);
+                IncrementLockerCount(layer);
             }
             else
             {
-                HistSi.HistSi.ThrowError("Lock layer at index "+ lockedLayer + " does not exist" );
+                HistSi.HistSi.ThrowError("Lock layer at index "+ layer + " does not exist" );
             }
         }
-        public static void UnlockButtons(byte lockedLayer)
+        public static void UnlockButtons(byte layer)
         {
-            if (GetLockerCount(lockedLayer) == 1)
+            if (GetLockerCount(layer) == 1)
             {
-                foreach (LockableButton button in GetButtons(lockedLayer)) button.ActivateButton();
+                foreach (LockableButton button in GetButtons(layer)) button.ActivateButton();
             }
-            DecrementLockerCount(lockedLayer);
+            DecrementLockerCount(layer);
         }
     }
     public static class SubMenuManager
     {
-        readonly static List<byte> SubMenuLockLayers = new List<byte> { };
-        readonly static Dictionary<byte, HistSiSubMenu> SubMenu = new Dictionary<byte, HistSiSubMenu> { };
+        private readonly static Dictionary<byte, HistSiSubMenu> SubMenu = new Dictionary<byte, HistSiSubMenu> { };
         public static void AddSubMenu(byte menuLayer,HistSiSubMenu subMenu)
         {
             if (!SubMenu.ContainsKey(menuLayer))
@@ -222,12 +223,6 @@ namespace HistSiGUI
         public static HistSiSubMenu GetSubMenu(byte menuLayer)
         {
             return SubMenu[menuLayer];
-        }
-        public static List<byte> GetSubMenuLockLayers()
-        {
-            List<byte> lockLayer = new List<byte> { };
-            lockLayer.AddRange(SubMenuLockLayers);
-            return lockLayer;
         }
     }
 }

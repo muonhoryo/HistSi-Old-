@@ -1227,9 +1227,9 @@ GameObject:
   - component: {fileID: 6156459522922076928}
   - component: {fileID: 5675558294793873996}
   - component: {fileID: 795782881076540778}
-  - component: {fileID: 6522546864855872491}
+  - component: {fileID: 8328379139468344976}
   - component: {fileID: 4076492994441594139}
-  - component: {fileID: 1300651343556006415}
+  - component: {fileID: 2766379887216663146}
   m_Layer: 5
   m_Name: BarValue
   m_TagString: Untagged
@@ -1298,7 +1298,7 @@ MonoBehaviour:
     m_VerticalOverflow: 0
     m_LineSpacing: 1
   m_Text: 0
---- !u!114 &6522546864855872491
+--- !u!114 &8328379139468344976
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1307,11 +1307,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 5929192841599727120}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9b09f31dd74945a448282482d5a900e5, type: 3}
+  m_Script: {fileID: 11500000, guid: a963e84b7cd1bd6439d9def15c5d90c2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ValueSourceBehavior: {fileID: 1300651343556006415}
-  ValueText: {fileID: 795782881076540778}
+  ValueSourceBehavior: {fileID: 4076492994441594139}
 --- !u!114 &4076492994441594139
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1331,7 +1330,7 @@ MonoBehaviour:
   SecondOperandSourseBehavior: {fileID: 0}
   SecondOperand: 10
   SecondOperandIsFunction: 0
---- !u!114 &1300651343556006415
+--- !u!114 &2766379887216663146
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1340,13 +1339,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 5929192841599727120}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3827e8b2581a57a4dbebc9cf5cddbcd6, type: 3}
+  m_Script: {fileID: 11500000, guid: 097ae498129c3b442bf105b8a77998f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  OperationType: 1
-  OperandSourseBehavior: {fileID: 4076492994441594139}
-  Operand: 0
-  OperandIsFunction: 1
+  ValueSourceBehavior: {fileID: 8328379139468344976}
+  ValueText: {fileID: 795782881076540778}
 --- !u!1 &6167760150623175104
 GameObject:
   m_ObjectHideFlags: 0

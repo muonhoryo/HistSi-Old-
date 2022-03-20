@@ -40,7 +40,7 @@ namespace HistSiValueSources
         };
         [SerializeField]
         protected SourceType_Float ValueSourceType;
-        public event Action OnValueChanged 
+        public event Action ValueChangeEvent 
         {
             add=>ValueSources_float[ValueSourceType].OnValueChanged+=value;
             remove=>ValueSources_float[ValueSourceType].OnValueChanged -= value;

@@ -1,149 +1,66 @@
 using System.Collections;
 using System.Collections.Generic;
 using System;
-using UnityEditor;
 using UnityEngine;
-using UnityEngine.UI;
+using UnityEditor;
 using HistSiGUI;
+using HistSiSerialization;
 using HistSiValueSources;
 
 namespace HistSiInterfaces
 {
-    public static class DefaultMethods
+    public static class Removable
     {
-        public static void IRemovableRemove(IRemovable removable)
+        /// <summary>
+        /// Remove owner without animation
+        /// </summary>
+        /// <param name="owner"></param>
+        public static void Remove(IRemovable owner)
         {
-            IRemovableRemove(removable, ()=> { });
+            Remove(owner,() => { });
         }
-        public static void IRemovableRemove(IRemovable removable, Action beforeAnimStartAction)
+        /// <summary>
+        /// Remove owner. If destroy animation not equal null-remove after an delay equal destroy animation's length.
+        /// </summary>
+        /// <param name="owner"></param>
+        /// <param name="beforeAnimStartAction"></param>
+        public static void Remove(IRemovable owner,Action beforeAnimStartAction)
         {
-            if (removable.OnDestroyAnimation == null)
+            if (owner.OnDestroyAnimation == null)
             {
-                GameObject.Destroy(removable.DestroyedObject);
+                GameObject.Destroy(owner.DestroyedObject);
             }
             else
             {
                 beforeAnimStartAction();
-                removable.OnDestroyAnimation.Play();
-                removable.StartCoroutine(HistSiGUI.DefaultMethods.DelayDestroy(removable));
+                owner.OnDestroyAnimation.Play();
+                owner.StartCoroutine(DelayDestroy(owner));
             }
         }
-        public static void ICommandRunerRunCommandList(ButtonCommandsQueue commandnList)
+        /// <summary>
+        /// Destroy destroyedObject after an delay equal destroy animation length.
+        /// </summary>
+        /// <param name="destroyedObject"></param>
+        /// <returns></returns>
+        public static IEnumerator DelayDestroy(IRemovable destroyedObject)
         {
-            foreach (ButtonCommand command in commandnList.Commands)
-            {
-                command.CommandRun();
-                if (command is IFinalCommand) break;
-            }
-        }
-    }
-}
-namespace HistSiGUI
-{
-    public static class DefaultMethods
-    {
-        public static IEnumerator DelayDestroy(IRemovable removableObject)
-        {
-            yield return new WaitForSeconds(removableObject.OnDestroyAnimation.clip.length);
-            GameObject.Destroy(removableObject.DestroyedObject);
-        }
-    }
-}
-namespace HistSiCustomEditor
-{
-    public static class DefaultMethods
-    {
-        static void SerializeInterface<T>(ref T serializableInterface,ref MonoBehaviour sourceBehavior,string inspectorLabelText) where T:class
-        {
-            T oldInterface = serializableInterface;
-            sourceBehavior = EditorGUILayout.ObjectField(inspectorLabelText,
-                sourceBehavior, typeof(MonoBehaviour), true) as MonoBehaviour;
-            if (sourceBehavior != null)
-            {
-                serializableInterface = sourceBehavior as T;
-                if (serializableInterface==null&&!sourceBehavior.TryGetComponent(out serializableInterface))
-                {
-                    sourceBehavior = null;
-                }
-                else
-                {
-                    sourceBehavior = serializableInterface as MonoBehaviour;
-                }
-            }
-            if (oldInterface != serializableInterface)
-            {
-                EditorUtility.SetDirty(sourceBehavior);
-            }
-        }
-        static void SerializeObjectField<T>(ref T serializableObjField,string inspectorLabelText) where T:UnityEngine.Object
-        {
-            T oldObject = serializableObjField;
-            serializableObjField = EditorGUILayout.ObjectField(inspectorLabelText, serializableObjField, typeof(T), true) as T;
-            if (oldObject != serializableObjField)
-            {
-                EditorUtility.SetDirty(serializableObjField);
-            }
-        }
-        public static void TextDependenceOnInspectorGUI<T>(Editor editor)
-        {
-            TextDependence<T> obj = (TextDependence<T>)editor.target;
-            SerializeInterface(ref obj.valueGetter,ref obj.ValueSourceBehavior, "Value Source " + typeof(T).Name);
-            SerializeObjectField(ref obj.ValueText, "Text Field");
-        }
-        public static void PairMathOperationOnInspectorGUI<T>(Editor editor) where T:struct
-        {
-            PairMathOperation<T> obj = (PairMathOperation<T>)editor.target;
-            SerializedObject serializedObject = new SerializedObject(obj);
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("OperationType"));
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("FirstOperandIsFunction"));
-            if (obj.FirstOperandIsFunction)
-            {
-                SerializeInterface(ref obj.FirstSourceOperand, ref obj.FirstOperandSourseBehavior, "First Operand " + typeof(T));
-            }
-            else
-            {
-                EditorGUILayout.PropertyField(serializedObject.FindProperty("FirstOperand"));
-            }
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("SecondOperandIsFunction"));
-            if (obj.SecondOperandIsFunction)
-            {
-                SerializeInterface(ref obj.SecondSourceOperand, ref obj.SecondOperandSourseBehavior, "Second Operand " + typeof(T));
-            }
-            else
-            {
-                EditorGUILayout.PropertyField(serializedObject.FindProperty("SecondOperand"));
-            }
-            serializedObject.ApplyModifiedProperties();
-        }
-        public static void SingleMathOperationOnInspectorGUI<T>(Editor editor)where T:struct
-        {
-            SingleMathOperation<T> obj =(SingleMathOperation<T>)editor.target;
-            SerializedObject serializedObject = new SerializedObject(obj);
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("OperationType"));
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("OperandIsFunction"));
-            if (obj.OperandIsFunction)
-            {
-                SerializeInterface(ref obj.SourceOperand, ref obj.OperandSourseBehavior, "Operand " + typeof(T));
-            }
-            else
-            {
-                EditorGUILayout.PropertyField(serializedObject.FindProperty("Operand"));
-            }
-            serializedObject.ApplyModifiedProperties();
-        }
-        public static void ConverterOnInspectorGUI<TInput,TOutput>(Editor editor)
-        {
-            HistSiValueSources.Converter<TInput, TOutput> obj = (HistSiValueSources.Converter<TInput, TOutput>)editor.target;
-            SerializeInterface(ref obj.ValueSource, ref obj.ValueSourceBehavior, "Value Source " + typeof(TInput));
+            yield return new WaitForSeconds(destroyedObject.OnDestroyAnimation.clip.length);
+            GameObject.Destroy(destroyedObject.DestroyedObject);
         }
     }
 }
 namespace HistSiValueSources
 {
-    public static class DefaultMethods
+    public static class Converter
     {
-        public delegate bool TryParser<T>(string x, out T y);
-        public static T Converter_StringToTGetValue<T>(string value,TryParser<T> parser) where T:struct
+        /// <summary>
+        /// Tries to parse value to T type. If cannot parse,return default.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="value"></param>
+        /// <param name="parser"></param>
+        /// <returns></returns>
+        public static T StringToValue<T>(string value, HistSi.HistSi.TryParser<T> parser) where T : struct
         {
             if (parser(value, out T x))
             {
@@ -155,16 +72,130 @@ namespace HistSiValueSources
                 return default;
             }
         }
-        public static void InterfaceInitialization<T>(ref IGetterValue<T> serializatedInterface,ref MonoBehaviour interfaceComponent)
+    }
+    public static class DefaultMethods
+    {
+        //Translate serialized interfaceComponent like a TInterfaceType in serializableInterface
+        public static void InterfaceInitialization<TInterfaceType>(ref TInterfaceType serializableInterface, ref MonoBehaviour interfaceComponent)
+            where TInterfaceType:class
         {
-            if (serializatedInterface == null)
+            if (serializableInterface == null)
             {
-                serializatedInterface = (IGetterValue<T>)interfaceComponent;
-                if (serializatedInterface == null)
+                serializableInterface = interfaceComponent as TInterfaceType;
+                if (serializableInterface == null)
                 {
-                    HistSi.HistSi.ThrowError("Value Source Monobehavior does not inhert IGetterValue<" + typeof(T) + ">");
+                    HistSi.HistSi.ThrowError("Value Source Monobehavior does not inhert <" + typeof(TInterfaceType) + ">");
                     return;
                 }
+            }
+        }
+    }
+}
+namespace HistSiCustomEditor
+{
+    public static class DefaultMethods 
+    {
+        public static void DrawInterface<T>(ref T serializableInterface,ref MonoBehaviour sourceComponent,
+            string inspectorLabelText = "") where T : class
+        {
+            T oldInterface = serializableInterface;
+            sourceComponent = EditorGUILayout.ObjectField(inspectorLabelText,
+                sourceComponent, typeof(MonoBehaviour), true) as MonoBehaviour;
+            if (sourceComponent != null)
+            {
+                serializableInterface = sourceComponent as T;
+                if (serializableInterface == null && !sourceComponent.TryGetComponent(out serializableInterface))
+                {
+                    sourceComponent = null;
+                }
+                else
+                {
+                    sourceComponent = serializableInterface as MonoBehaviour;
+                }
+            }
+            if (oldInterface != serializableInterface)
+            {
+                EditorUtility.SetDirty(sourceComponent);
+            }
+        }
+        public static void DrawObjectField<T>(ref T serializableObjField, string inspectorLabelText = "") where T : UnityEngine.Object
+        {
+            T oldObject = serializableObjField;
+            serializableObjField = EditorGUILayout.ObjectField(inspectorLabelText, serializableObjField, typeof(T), true) as T;
+            if (oldObject != serializableObjField)
+            {
+                EditorUtility.SetDirty(serializableObjField);
+            }
+        }
+        public static void DrawDictionary<TKey, TValue>(Dictionary<TKey, TValue> showingDictionary,
+            SerializedObject serialiabledObj, IDictionarySerializeHelper<TKey, TValue> dictHelper, ref bool isShowingList,
+            string inspectorLabelText = "")
+        {
+            if (isShowingList = EditorGUILayout.BeginFoldoutHeaderGroup(isShowingList, inspectorLabelText))
+            {
+                showingDictionary = Serialization.DictionarySerializator.Read<TKey, TValue>(dictHelper.SerializationPath);
+                bool isChanged = false;
+                TKey[] keyArray = new TKey[showingDictionary.Count];
+                showingDictionary.Keys.CopyTo(keyArray, 0);
+                for (int i = 0; i < showingDictionary.Count; i++)
+                {
+                    dictHelper.TemporalValue = showingDictionary[keyArray[i]];
+                    EditorGUILayout.BeginHorizontal();
+                    EditorGUILayout.PropertyField(serialiabledObj.FindProperty("temporalValue_" + typeof(TValue).Name),
+                        new GUIContent(keyArray[i].ToString()));
+                    serialiabledObj.ApplyModifiedProperties();
+                    if (GUILayout.Button("Remove"))
+                    {
+                        showingDictionary.Remove(keyArray[i]);
+                        isChanged = true;
+                    }
+                    else if (!dictHelper.TemporalValue.Equals(showingDictionary[keyArray[i]]))
+                    {
+                        showingDictionary[keyArray[i]] = dictHelper.TemporalValue;
+                        isChanged = true;
+                    }
+                    EditorGUILayout.EndHorizontal();
+                }
+                EditorGUILayout.PropertyField(serialiabledObj.FindProperty("temporalKey_" + typeof(TKey).Name), new GUIContent("New dictionary element"));
+                serialiabledObj.ApplyModifiedProperties();
+                if (GUILayout.Button("Add") && dictHelper.TemporalKey != null && !showingDictionary.ContainsKey(dictHelper.TemporalKey))
+                {
+                    showingDictionary.Add(dictHelper.TemporalKey, default);
+                    dictHelper.TemporalKey = default;
+                    isChanged = true;
+                }
+                if (isChanged)
+                {
+                    Serialization.DictionarySerializator.Write(dictHelper.SerializationPath, showingDictionary);
+                }
+            }
+            EditorGUILayout.EndFoldoutHeaderGroup();
+        }
+    }
+}
+namespace HistSi
+{
+    public static class Singltone
+    {
+        /// <summary>
+        /// If example of TSingltonType is exist-execute destroyAction,else-execute awakeAction.
+        /// </summary>
+        /// <typeparam name="TSingltoneType"></typeparam>
+        /// <param name="script"></param>
+        /// <param name="destroyAction"></param>
+        /// <param name="awakeAction"></param>
+        public static void Awake<TSingltoneType>(ISingltone<TSingltoneType> script, Action destroyAction,
+            Action awakeAction)
+            where TSingltoneType : UnityEngine.Object
+        {
+            if (script.Singltone != null)
+            {
+                destroyAction();
+            }
+            else
+            {
+                script.Singltone = (TSingltoneType)script;
+                awakeAction();
             }
         }
     }
